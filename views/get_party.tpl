@@ -2,6 +2,9 @@
 <main class="container" style="text-align: center;">
    <article>
       <h1> {{party.name}} </h1>
+      <p>
+      <i>Code: <mark>{{party.code}}</mark></i>
+      </p>
       Budget progress
       </br>
       <progress value="{{party.current_budget}}" max="{{party.max_budget}}" style="max-width: 50%;"></progress>
@@ -10,6 +13,8 @@
       </p>
       <ul>
          <article style="text-align: left;">
+	    <h1>Things</h1>
+	    <hr/>
             % for thing in party.things:
             <li style="list-style-type: none;">
                <span style="display: inline-block; width: 100%;">
