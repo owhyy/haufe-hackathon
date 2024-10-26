@@ -1,5 +1,5 @@
 import datetime
-from bottle import route, run, template, abort, request, post
+from bottle import route, run, template, abort, request, post, patch
 
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
@@ -18,18 +18,19 @@ def _create_a_party(s: Session):
     joe = User(
         username="joe",
     )
-    alcohol = Thing(
-        price=2000,
-        name="Alcohol",
-        description="Something to warm your soul",
-        responsible=joe,
-    )
     party = Party(
         name="halloween party 2024",
         max_budget=4000,
         date=datetime.date(2024, 10, 26),
         code="aaa111",
         users=[admin, joe],
+    )
+    alcohol = Thing(
+        price=2000,
+        name="Alcohol",
+        description="Something to warm your soul",
+        responsible=joe,
+        party=party,
     )
 
     s.add_all([admin, joe, alcohol, party])
@@ -69,6 +70,33 @@ def join_party(code: str):
         s.commit()
 
     return template("get_party", party=party, user=user)
+
+
+@patch("/party/<party_id>/reassign/<thing_id>")
+def reassign_thing(party_id: int, thing_id: int):
+    stmt = select(Party).where(Party.id == int(party_id))
+    party = s.scalar(stmt)
+
+    if not party:
+        abort(404, "Party not found")
+
+    try:
+        thing = next(t for t in party.things if t.id == int(thing_id))
+    except StopIteration:
+        abort(404, "Thing not found")
+
+    try:
+        user = next(u for u in party.users if u.id == int(request.POST.responsible))
+    except StopIteration:
+        abort(404, "User not found or isn't in this party planning session")
+
+    thing.user_id = user.id
+    s.commit()
+
+    users_except_assigned = filter(lambda u: u.id != user.id, party.users)
+    return f'<option selected value="{user.id}">{user.username}</option>' + "".join(
+        f'<option value="{u.id}">{u.username}</option>' for u in users_except_assigned
+    )
 
 
 @route("/")
