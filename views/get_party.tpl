@@ -21,7 +21,8 @@
         </svg>
                     </a>
                 </div>
-                <hr/> % for thing in party.things:
+                <hr/>
+		% for thing in party.things:
                 <li style="list-style-type: none;">
                     <span style="display: inline-block; width: 100%;">
     <p style="display: flex; justify-content: space-between; align-items: center; margin: 0;">
