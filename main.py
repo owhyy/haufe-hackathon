@@ -18,12 +18,15 @@ def _create_a_party(s: Session):
     joe = User(
         username="joe",
     )
+    billie = User(
+        username="bill",
+    )
     party = Party(
         name="halloween party 2024",
         max_budget=4000,
         date=datetime.date(2024, 10, 26),
         code="aaa111",
-        users=[admin, joe],
+        users=[admin, joe, billie],
     )
     alcohol = Thing(
         price=2000,
@@ -32,8 +35,23 @@ def _create_a_party(s: Session):
         responsible=joe,
         party=party,
     )
+    location = Thing(
+        price=500,
+        name="Location",
+        description="Rent",
+        responsible=joe,
+        party=party,
+    )
+    dj = Thing(
+        price=500,
+        name="DJ",
+        description="For the muzak",
+        responsible=billie,
+        party=party,
+    )
+    snacks = Thing(price=150, name="Snacks", description="Snacky snacks", responsible=admin, party=party)
 
-    s.add_all([admin, joe, alcohol, party])
+    s.add_all([admin, joe, billie, alcohol, location, dj, snacks, party])
     s.commit()
 
 
@@ -44,9 +62,6 @@ def new_party():
 
 @route("/get-party")
 def get_party():
-    # return 200 if party exists, as well as tepmlate + embed code in it
-    # return 404 if it doesn't
-
     # TODO(ion): add layer on top of orm that will make the requests
     stmt = select(Party).where(Party.code == request.params.code)
     party = s.scalar(stmt)
