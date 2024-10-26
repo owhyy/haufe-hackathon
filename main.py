@@ -1,10 +1,13 @@
 import datetime
-from bottle import route, run, template
+from bottle import route, run, template, abort, request, post
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
 
 from db.models import Base, Thing, User, Party
+
+engine = create_engine("sqlite://", echo=True)
+Base.metadata.create_all(engine)
 
 
 def _create_a_party(s: Session):
@@ -38,14 +41,42 @@ def new_party():
     return template("new_party")
 
 
+@route("/get-party")
+def get_party():
+    # return 200 if party exists, as well as tepmlate + embed code in it
+    # return 404 if it doesn't
+
+    # TODO(ion): add layer on top of orm that will make the requests
+    stmt = select(Party).where(Party.code == request.params.code)
+    party = s.scalar(stmt)
+    if not party:
+        abort(404, "A party with this code was not found")
+
+    return template("join_party", party=party)
+
+
+@post("/party/<code>/join")
+def join_party(code: str):
+    stmt = select(Party).where(Party.code == code)
+    party = s.scalar(stmt)
+    username = request.POST.username
+
+    try:
+        user = next(u for u in party.users if u.username == username)
+    except StopIteration:
+        user = User(username=username, party=party)
+        s.add(user)
+        s.commit()
+
+    return template("get_party", party=party, user=user)
+
+
 @route("/")
 def main_page():
     return template("main_page")
 
 
 if __name__ == "__main__":
-    engine = create_engine("sqlite://", echo=True)
-    Base.metadata.create_all(engine)
     with Session(engine) as s:
         _create_a_party(s)
 
