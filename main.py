@@ -114,6 +114,19 @@ def reassign_thing(party_id: int, thing_id: int):
     )
 
 
+@post("/party")
+def create_party():
+    party = Party(
+        name=request.POST.partyName,
+        max_budget=request.POST.maxBudget,
+        date=datetime.date.fromisoformat(request.POST.partyDate),
+        code=Party.generate_code(),
+    )
+    s.add(party)
+    s.commit()
+    return template("join_party", party=party)
+
+
 @route("/")
 def main_page():
     return template("main_page")

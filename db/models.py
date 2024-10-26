@@ -6,6 +6,8 @@ from sqlalchemy.orm import (
     relationship,
 )
 import datetime
+import string
+import secrets
 
 
 class Base(DeclarativeBase):
@@ -32,6 +34,11 @@ class Party(Base):
     @property
     def current_budget(self):
         return sum(t.price for t in self.things)
+
+    @classmethod
+    def generate_code(cls) -> str:
+        alphabet = string.ascii_letters + string.digits
+        return "".join(secrets.choice(alphabet) for _ in range(8))
 
 
 class User(Base):
