@@ -1,0 +1,1 @@
+# Haufe Group Hackathon project
